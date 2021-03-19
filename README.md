@@ -77,3 +77,6 @@ userRepo
       { fistname: 'Bill', lastname: 'Gates', age: 65 }
     ]
 ```
+#### Deleting
+👀 I really didn't write it yet 🤭
+But I swear, I will do
