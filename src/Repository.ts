@@ -1,5 +1,4 @@
-import intersection from 'lodash.intersection';
-import pick from 'lodash.pick';
+import { intersection, pick } from 'lodash';
 
 import { AsyncRedisClient } from './AsyncRedis';
 import { Schema, DataType } from './Schema';

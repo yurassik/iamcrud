@@ -3,7 +3,7 @@
 
 ### How to use
 ```
-import redis from 'redis';
+import * as redis from 'redis';
 import { IamCrud, Schema, DataType } from 'iamcrud';
 
 const client = redis.createClient();
@@ -13,6 +13,7 @@ interface User {
   firstname: string;
   lastname: string;
   age: number;
+  occupation: string;
 }
 
 const userSchema: Schema<User> = [
@@ -28,6 +29,10 @@ const userSchema: Schema<User> = [
     key: 'age',
     type: DataType.NUMBER,
   },
+  {
+    key: 'occupation',
+    type: DataType.String,
+  }
 ];
 
 const user = iamcrud.createRepository('user', userSchema);
@@ -39,41 +44,54 @@ const user = iamcrud.createRepository('user', userSchema);
 ```
 user
   .insert({ fistname: 'Elon', lastname: 'Musk', age: 49 })
-  .then((elonMusk) => console.log(elonMusk))
+  .then((elonMusk) => console.log(elonMusk));
 ```
 ```
---> { fistname: 'Elon', lastname: 'Musk', age: 49 }
+--> { fistname: 'Elon', lastname: 'Musk', age: 49, occupation: 'engineer' }
 ```
 
 #### Searching
 ```
 user
   .find({ firstname: 'Elon' })
-  .then((users) => console.log(users))
+  .then((users) => console.log(users));
 ```
 ```
---> [{ fistname: 'Elon', lastname: 'Musk', age: 49 }]
+--> [{ fistname: 'Elon', lastname: 'Musk', age: 49, occupation: 'engineer' }]
 ```
-Searching with conditions:
+##### Searching with conditions.
+The following operators are currently supported: **\$lt**, **\$lte**, **\$eq**, **\$gt**, **\$gte**
+what accordingly mean: **lower than**, **lower than or equal**, **equal**, **greater than**, **greater than or equal**.
 ```
-userRepo
+user
   .find({ age: { $lg: 66 }})
-  .then((users) => console.log(users))
+  .then((users) => console.log(users));
 ```
 ```
 --> [
-      { fistname: 'Elon', lastname: 'Musk', age: 49 },
-      { fistname: 'Bill', lastname: 'Gates', age: 65 }
+      { fistname: 'Elon', lastname: 'Musk', age: 49, occupation: 'engineer' },
+      { fistname: 'Bill', lastname: 'Gates', age: 65, occupation: 'software developer' }
     ]
 ```
 ```
-userRepo
+user
   .find({ fistname: { $gt: 'Bill' }})
-  .then((users) => console.log(users))
+  .then((users) => console.log(users));
 ```
 ```
 --> [
-      { fistname: 'Billie', lastname: 'Eilish', age: 49 },
-      { fistname: 'Bill', lastname: 'Gates', age: 65 }
+      { fistname: 'Billie', lastname: 'Eilish', age: 49, occupation: 'musician' },
+      { fistname: 'Bill', lastname: 'Gates', age: 65, occupation: 'software developer' }
     ]
 ```
+#### Updating
+```
+user
+  .update({ firstname: 'Bill', lastname: 'Gates' }, { $set: { occupation: 'investor' } });
+```
+will update `occupation` property
+```
+user
+  .update({ firstname: 'Bill', lastname: 'Gates' }, { firstname: 'Bill', lastname: 'Murray', age: 70, occupation: 'actor' });
+```
+will replace document comletely
