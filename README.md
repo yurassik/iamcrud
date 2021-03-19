@@ -95,3 +95,6 @@ user
   .update({ firstname: 'Bill', lastname: 'Gates' }, { firstname: 'Bill', lastname: 'Murray', age: 70, occupation: 'actor' });
 ```
 will replace document comletely
+#### Deleting
+👀 I really didn't write it yet 🤭
+But I swear, I will do
