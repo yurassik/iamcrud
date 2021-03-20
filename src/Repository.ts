@@ -135,13 +135,13 @@ export class Repository<T extends { [key: string]: any }> {
   }
 
   async insert(model: T) {
-    const nextId = await this.client.get(`${this.alias}${this.INCR_SUFFIX}`);
+    const nextId = await this.client.get(`${this.alias}${this.INCR_SUFFIX}`) || '1';
 
     const normalizedModel = { ...this.normalize(model), id: nextId };
 
     const pool = this.client.multi();
     pool.hset(this.getHashName(nextId), this.modelToArray(normalizedModel));
-    
+
     // Add to indexes
     Object.entries(normalizedModel).forEach(([key, value]) => {
       pool.zadd(`${this.alias}.${key}.index`, 0, `${value}:${nextId}`);
@@ -169,11 +169,13 @@ export class Repository<T extends { [key: string]: any }> {
       }
     });
     const foundInIndexes: string[][] = await pool.exec();
-    const foundInIndexesIds: string[][] = foundInIndexes.map((foundArr) => foundArr.map((found) => {
-      const [, id] = /.+:(\d+)/.exec(found);
-      return id;
-    }))
-  
+    const foundInIndexesIds: string[][] = foundInIndexes.map((foundArr) =>
+      foundArr.map((found) => {
+        const [, id] = /.+:(\d+)/.exec(found);
+        return id;
+      }),
+    );
+
     return intersection(...foundInIndexesIds);
   }
 
@@ -198,7 +200,7 @@ export class Repository<T extends { [key: string]: any }> {
     if (ids.length) {
       const pool = this.client.multi();
       const isPatch = intersection(Object.keys(updateOptions), this.setOps).length;
-      for (const id of (multi ? ids : [ids[0]])) {        
+      for (const id of multi ? ids : [ids[0]]) {
         if (isPatch) {
           if (updateOptions.$set) {
             const fullModelToUpdate = await this.client.hgetall(this.getHashName(id));
@@ -251,12 +253,30 @@ export class Repository<T extends { [key: string]: any }> {
 
           pool.hset(this.getHashName(id), this.modelToArray(normalizedModel));
         }
-      };
+      }
       await pool.exec();
     }
   }
 
-  async findOne(options: Partial<T>) {}
+  // async findOne(options: Partial<T>) {}
 
-  async findById(id: number) {}
+  // async findById(id: number) {}
+
+  async remove(searchOptions: SearchOptions<T>) {
+    const ids = await this.findIds(searchOptions);
+
+    const pool = this.client.multi();
+    for (const id of ids) {
+      const modelToRemove = await this.client.hgetall(this.getHashName(id));
+
+      // Delete old model
+      pool.del(this.getHashName(id));
+
+      // Delete in indexes
+      Object.entries(modelToRemove).forEach(([key, oldValue]) => {
+        pool.zrem(`${this.alias}.${key}.index`, `${oldValue}:${id}`);
+      });
+    }
+    pool.exec();
+  }
 }
