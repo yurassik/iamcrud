@@ -1,6 +1,6 @@
 {
   "name": "iamcrud",
-  "version": "0.4.3",
+  "version": "0.4.5",
   "description": "Simple CRUD operations for Redis",
   "main": "build/index.js",
   "scripts": {
