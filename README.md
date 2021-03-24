@@ -1,6 +1,15 @@
 # IamCRUD
 ## A simple CRUD operations for Redis
 
+### Installation
+```
+yarn add iamcrud
+```
+or
+```
+npm install iamcrud
+```
+
 ### How to use
 ```
 import * as redis from 'redis';
